@@ -21,8 +21,8 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
           <img src="/over.png" alt="think continuosly" />
         </div>
         <div className="title-wrap">
-          <h3 className="title">Cuộc trò chuyện</h3>
-          <div className="subtitle">Hai AI tranh luận</div>
+          <h3 className="title">AI Debate </h3>
+          <div className="subtitle">Think continously & decide efficently</div>
         </div>
       </div>
       <div className="sidebar-body">
