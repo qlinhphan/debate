@@ -9,6 +9,7 @@ from typing import Any
 DATA_DIR = Path(__file__).resolve().parent / "data"
 DATA_FILE = DATA_DIR / "conversations.json"
 _lock = Lock()
+_store_cache: dict[str, dict[str, Any]] | None = None
 
 
 def _now() -> str:
@@ -36,9 +37,16 @@ def _write_store(data: dict[str, dict[str, Any]]) -> None:
     temp_file.replace(DATA_FILE)
 
 
+def _get_store() -> dict[str, dict[str, Any]]:
+    global _store_cache
+    if _store_cache is None:
+        _store_cache = _read_store()
+    return _store_cache
+
+
 def list_conversations() -> list[dict[str, Any]]:
     with _lock:
-        data = _read_store()
+        data = _get_store()
         items = []
         for conversation_id, conversation in data.items():
             messages = conversation.get("messages") or []
@@ -57,7 +65,7 @@ def list_conversations() -> list[dict[str, Any]]:
 
 def get_conversation(conversation_id: str) -> dict[str, Any] | None:
     with _lock:
-        conversation = _read_store().get(conversation_id)
+        conversation = _get_store().get(conversation_id)
         return deepcopy(conversation) if conversation else None
 
 
@@ -69,7 +77,7 @@ def upsert_conversation(
     summary: str,
 ) -> dict[str, Any]:
     with _lock:
-        data = _read_store()
+        data = _get_store()
         existing = data.get(conversation_id, {})
         conversation = {
             "id": conversation_id,

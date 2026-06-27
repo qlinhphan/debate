@@ -54,12 +54,28 @@ prompt = ChatPromptTemplate([
 base = create_tool_calling_agent(llm, [toolCommunicateTwo], prompt)
 agent = AgentExecutor(agent=base, tools=[toolCommunicateTwo])
 
-history = []
 
-def agent_twos(q):
+def _to_langchain_messages(history: list[dict] | None):
+    messages = []
+    for item in history or []:
+        role = item.get("role")
+        content = item.get("content", "")
+        if role == "human":
+            messages.append(HumanMessage(content=content))
+        elif role == "ai":
+            messages.append(AIMessage(content=content))
+    return messages
+
+
+def agent_twos(q, history: list[dict] | None = None, return_history: bool = False):
     q = q
-    rs = agent.invoke({"input": q, "history": history})
-    history.append(AIMessage(content=rs['output']))
-    history.append(HumanMessage(content=q))
+    rs = agent.invoke({"input": q, "history": _to_langchain_messages(history)})
+    updated_history = [
+        *(history or []),
+        {"role": "human", "content": q},
+        {"role": "ai", "content": rs['output']},
+    ]
+    if return_history:
+        return rs['output'], updated_history
     return rs['output']
 
