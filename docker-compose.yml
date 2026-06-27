@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ./back
+    container_name: communicate-backend
+    env_file:
+      - ./back/.env
+    volumes:
+      - backend_data:/app/back/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./front
+    container_name: communicate-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  backend_data:

@@ -1,0 +1,7 @@
+.git
+.agents
+front/node_modules
+front/dist
+back/__pycache__
+back/data
+*.pyc

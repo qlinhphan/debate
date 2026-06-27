@@ -1,0 +1,6 @@
+back/.env
+back/data/
+back/__pycache__/
+front/node_modules/
+front/dist/
+*.pyc
