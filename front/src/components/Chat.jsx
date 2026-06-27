@@ -117,15 +117,15 @@ export default function Chat({ session, onSessionUpdate }) {
   return (
     <div className="chat-area">
       <div className="chat-header">
-        <span className="chat-title">Chat</span>
+        <span className="chat-title">Trò chuyện</span>
         <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(session.topic)}` : 'Tên chủ đề: ...'}</span>
         <button className="stop-btn" onClick={handleStop} disabled={!running}>
           Dừng thảo luận
         </button>
       </div>
       {running && (
-        <div className="progress-wrap" aria-label="Discussion progress">
-          <div className="progress-label">Đang thảo luận…</div>
+        <div className="progress-wrap" aria-label="Tiến trình thảo luận">
+          <div className="progress-label">Đang thảo luận...</div>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${progress}%` }} />
           </div>

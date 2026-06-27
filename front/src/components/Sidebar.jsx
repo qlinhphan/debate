@@ -14,23 +14,23 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
   return (
     <div className={`sidebar ${open ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
-        <button className="toggle-btn" onClick={onToggle} aria-label="Toggle sidebar">
+        <button className="toggle-btn" onClick={onToggle} aria-label="Ẩn hiện thanh bên">
           {open ? '<' : ''}
         </button>
-        <div className="logo" onClick={() => !open && onToggle && onToggle()} title="Open">
+        <div className="logo" onClick={() => !open && onToggle && onToggle()} title="Mở thanh bên">
           <img src="/over.png" alt="think continuosly" />
         </div>
         <div className="title-wrap">
-          <h3 className="title">Conversations</h3>
-          <div className="subtitle">Agent talk</div>
+          <h3 className="title">Cuộc trò chuyện</h3>
+          <div className="subtitle">Hai AI tranh luận</div>
         </div>
       </div>
       <div className="sidebar-body">
         <div className="topic-block">
-          <label className="topic-label">Chu de</label>
+          <label className="topic-label">Chủ đề</label>
           <input
             className="topic-input"
-            placeholder="Nhap chu de cuoc thao luan..."
+            placeholder="Nhập chủ đề cuộc thảo luận..."
             value={topic}
             onChange={e => setTopic(e.target.value)}
             onKeyDown={e => {
@@ -40,7 +40,7 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
               }
             }}
           />
-          <button className="send-topic" onClick={handleSend}>Gui chu de</button>
+          <button className="send-topic" onClick={handleSend}>Gửi chủ đề</button>
         </div>
         <div className={`topic-history ${historyOpen ? 'open' : 'collapsed'}`}>
           <button
@@ -48,14 +48,15 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
             className="history-toggle"
             onClick={() => setHistoryOpen(value => !value)}
             aria-expanded={historyOpen}
+            aria-label={historyOpen ? 'Ẩn lịch sử chủ đề' : 'Hiện lịch sử chủ đề'}
           >
-            <span className="history-title">Lich su chu de</span>
-            <span className="history-caret">{historyOpen ? '^' : 'v'}</span>
+            <span className="history-title">Lịch sử chủ đề</span>
+            <span className={`history-caret ${historyOpen ? 'open' : ''}`} aria-hidden="true" />
           </button>
           {historyOpen && (
             <div className="history-list">
               {topicHistory.length === 0 ? (
-                <div className="history-empty">Chua co chu de nao</div>
+                <div className="history-empty">Chưa có chủ đề nào</div>
               ) : (
                 topicHistory.map((item) => (
                   <button
@@ -73,7 +74,7 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
         </div>
       </div>
       <div className="sidebar-footer">
-        <button className="new-chat" onClick={onNewChat}>New Chat</button>
+        <button className="new-chat" onClick={onNewChat}>Trò chuyện mới</button>
       </div>
     </div>
   )
