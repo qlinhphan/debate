@@ -17,7 +17,7 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
           {open ? '‹' : ''}
         </button>
         <div className="logo" onClick={() => !open && onToggle && onToggle()} title="Open">
-          C
+          <img src="/over.png" alt="think continuosly" />
         </div>
         <div className="title-wrap">
           <h3 className="title">Conversations</h3>
