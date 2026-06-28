@@ -21,7 +21,7 @@ function ReviewModal({ review, onClose }) {
         <div className="review-header">
           <div>
             <div className="review-eyebrow">Kết luận</div>
-            <h2 className="review-title">Tổng hợp từ agent review</h2>
+            <h2 className="review-title">Sau một hồi bàn bạc nhanh chóng thì</h2>
           </div>
           <button className="review-close" onClick={onClose} aria-label="Đóng kết luận">×</button>
         </div>
