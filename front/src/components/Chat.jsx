@@ -13,6 +13,24 @@ function Message({ m }) {
   )
 }
 
+function ReviewModal({ review, onClose }) {
+  if (!review) return null
+  return (
+    <div className="review-overlay" role="dialog" aria-modal="true" aria-label="Kết luận thảo luận">
+      <div className="review-modal">
+        <div className="review-header">
+          <div>
+            <div className="review-eyebrow">Kết luận</div>
+            <h2 className="review-title">Tổng hợp từ agent review</h2>
+          </div>
+          <button className="review-close" onClick={onClose} aria-label="Đóng kết luận">×</button>
+        </div>
+        <div className="review-body">{review}</div>
+      </div>
+    </div>
+  )
+}
+
 function formatTopicTitle(topic) {
   const words = topic.split(/\s+/).filter(Boolean)
   if (!words.length) return 'Chủ đề'
@@ -20,15 +38,19 @@ function formatTopicTitle(topic) {
   return firstFive.length < words.length ? `${firstFive.join(' ')} ...` : firstFive.join(' ')
 }
 
-export default function Chat({ session, onSessionUpdate }) {
+export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   const [messages, setMessages] = useState(session?.messages || [])
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [review, setReview] = useState(session?.review || '')
+  const [showReview, setShowReview] = useState(Boolean(session?.review))
   const cancelRef = useRef(false)
   const containerRef = useRef(null)
 
   useEffect(() => {
     setMessages(session?.messages || [])
+    setReview(session?.review || '')
+    setShowReview(Boolean(session?.review))
     setRunning(false)
     setProgress(0)
     cancelRef.current = true
@@ -37,6 +59,8 @@ export default function Chat({ session, onSessionUpdate }) {
   useEffect(() => {
     if (!session || !session.topic) {
       setMessages([])
+      setReview('')
+      setShowReview(false)
       setRunning(false)
       cancelRef.current = true
       return
@@ -48,6 +72,8 @@ export default function Chat({ session, onSessionUpdate }) {
 
     cancelRef.current = false
     setMessages([])
+    setReview('')
+    setShowReview(false)
     setRunning(true)
     setProgress(0)
     let step = 0
@@ -63,7 +89,12 @@ export default function Chat({ session, onSessionUpdate }) {
             return next
           })
           if (result.done) {
+            const nextReview = result.review || 'Chưa có kết luận.'
+            setReview(nextReview)
+            setShowReview(true)
+            onSessionReview && onSessionReview(session.id, nextReview)
             setRunning(false)
+            setProgress(100)
             return
           }
           step = result.step
@@ -80,7 +111,7 @@ export default function Chat({ session, onSessionUpdate }) {
     return () => {
       cancelRef.current = true
     }
-  }, [session?.id, session?.topic, onSessionUpdate])
+  }, [session?.id, session?.topic, onSessionUpdate, onSessionReview])
 
   function handleStop() {
     cancelRef.current = true
@@ -91,7 +122,7 @@ export default function Chat({ session, onSessionUpdate }) {
   useEffect(() => {
     if (!running || !session?.topic) return
 
-    const totalMs = 5 * 60 * 1000
+    const totalMs = 3 * 60 * 1000
     const start = Date.now()
     const timer = window.setInterval(() => {
       const elapsed = Date.now() - start
@@ -136,6 +167,7 @@ export default function Chat({ session, onSessionUpdate }) {
           <Message key={i} m={m} />
         ))}
       </div>
+      <ReviewModal review={showReview ? review : ''} onClose={() => setShowReview(false)} />
     </div>
   )
 }

@@ -38,6 +38,8 @@ prompt = ChatPromptTemplate([
     Chỉ trả lời khi Tool có đáp án, nếu tool không có đáp án thì nói 'Tôi chưa rõ'
     Dựa vào những lỗ hổng trong luận điểm của người dùng và phản biện lại
      - Quy tắc:
+    Bạn phải đưa ra câu trả lời phù hợp với cách hỏi/nói của người dùng: {type_q}
+    Nếu câu hỏi khác với {type_q} thì nói "Định dạng câu hỏi sai"
     Không xác nhận, khen ngợi hay nhắc lại câu hỏi hoặc phản biện của đối phương mà vào thẳng câu trả lời
     Nói chuyện lịch sự, văn minh
     Hãy nói chuyện với giọng điệu là đang tranh luận với người dùng chứ không phải đưa ra lời khuyên
@@ -66,9 +68,9 @@ def _to_langchain_messages(history: list[dict] | None):
     return messages
 
 
-def agent_ones(q, history: list[dict] | None = None, return_history: bool = False):
+def agent_ones(q, type_sen, history: list[dict] | None = None, return_history: bool = False):
     q = q
-    rs = agent.invoke({"input": q, "history": _to_langchain_messages(history)})
+    rs = agent.invoke({"input": q, "history": _to_langchain_messages(history), "type_q": type_sen})
 
     updated_history = [
         *(history or []),
@@ -78,4 +80,8 @@ def agent_ones(q, history: list[dict] | None = None, return_history: bool = Fals
     if return_history:
         return rs['output'], updated_history
     return rs['output']
+
+if __name__ == '__main__':
+    rs = agent_ones(q = "Bạn nghĩ khi nào Việt Nam đăng cai world cup?", type_sen="có/không")
+    print(rs)
 

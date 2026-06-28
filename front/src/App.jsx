@@ -70,6 +70,13 @@ export default function App() {
     }))
   }, [])
 
+  const handleSessionReview = useCallback((sessionId, review) => {
+    setSessions(prev => prev.map(session => {
+      if (session.id !== sessionId) return session
+      return { ...session, review }
+    }))
+  }, [])
+
   async function handleSelectHistory(sessionId) {
     setActiveSessionId(sessionId)
     setSessions(prev => prev.map(s => ({ ...s, isCurrent: s.id === sessionId })))
@@ -106,6 +113,7 @@ export default function App() {
         key={activeSessionId || 'new'}
         session={activeSession}
         onSessionUpdate={handleSessionUpdate}
+        onSessionReview={handleSessionReview}
       />
     </div>
   )
@@ -118,6 +126,7 @@ function normalizeSession(raw) {
     topic,
     summary: raw.summary || summarizeTopic(topic),
     messages: raw.messages || [],
+    review: raw.review || raw.state?.review || '',
     startedAt: raw.created_at || raw.startedAt || new Date().toISOString(),
   }
 }

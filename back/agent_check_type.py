@@ -65,8 +65,9 @@ prompt = ChatPromptTemplate.from_messages([
     ("placeholder", "{agent_scratchpad}")
 ])
 
-base = create_tool_calling_agent(llm, [toolCheckType], prompt)
-agents = AgentExecutor(agent=base, tools=[toolCheckType])
+def agent_check_types(q):
+    base = create_tool_calling_agent(llm, [toolCheckType], prompt)
+    agents = AgentExecutor(agent=base, tools=[toolCheckType])
 
-rs = agents.invoke({"input": "Tôi có nên đầu tư cổ phiếu vào FPT"})
-print(rs['output'])
+    rs = agents.invoke({"input": q})
+    return rs['output']

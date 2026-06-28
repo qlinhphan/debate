@@ -28,6 +28,7 @@ class ChatStepResponse(BaseModel):
     messages: list[dict]
     step: int
     done: bool
+    review: Optional[str] = None
 
 
 class BaseInps(TypedDict, total=False):
@@ -45,13 +46,15 @@ def summarize_topic(topic: str) -> str:
 
 
 def run_discussion(topic: str) -> DiscussionResponse:
-    result = {"inp": topic, "response_1": "", "response_2": ""}
+    result = None
+    response_1 = ""
+    response_2 = ""
     for _ in range(2):
-        result, _, _ = run_agent_cycle(topic, result)
+        result, response_1, response_2, _, _ = run_agent_cycle(topic, result)
     return DiscussionResponse(
         topic=topic,
-        response_1=result.get("response_1", ""),
-        response_2=result.get("response_2", ""),
+        response_1=response_1,
+        response_2=response_2,
     )
 
 
@@ -97,7 +100,7 @@ def api_chat_step(request: ChatStepRequest):
         if saved_conversation
         else conversation_states.get(session_id)
     )
-    updated_state, response_1, response_2 = run_agent_cycle(topic, current_state)
+    updated_state, response_1, response_2, done, review = run_agent_cycle(topic, current_state)
     conversation_states[session_id] = updated_state
     messages = [
         {"agent": 1, "text": response_1},
@@ -111,9 +114,15 @@ def api_chat_step(request: ChatStepRequest):
         messages=all_messages,
         summary=summarize_topic(topic),
     )
-    print(f"[api/chat/step] session_id={session_id} topic={topic} step={step}")
+    print(f"[api/chat/step] session_id={session_id} topic={topic} step={step} done={done}")
     print(messages)
-    return ChatStepResponse(session_id=session_id, messages=messages, step=step + 1, done=False)
+    return ChatStepResponse(
+        session_id=session_id,
+        messages=messages,
+        step=step + 1,
+        done=done,
+        review=review or None,
+    )
 
 
 @app.get('/api/conversations')

@@ -21,7 +21,7 @@ def toolCommunicateTwo(exp: str):
     messages = [
         (
             "system",
-            "Bạn là một trợ lý AI, Có nhiệm vụ phản biện về một luận điểm mà một người dùng đưa ra bằng cách đặt câu hỏi hoặc phân tích những điểm chưa đúng của người dùng",
+            "Bạn là một trợ lý AI, Có nhiệm vụ phản biện về một luận điểm mà một người dùng đưa ra bằng cách đặt câu hỏi hoặc phân tích những điểm chưa đúng của người dùng.",
         ),
         ("human",exp),
     ]
@@ -36,7 +36,6 @@ prompt = ChatPromptTemplate([
      - Nhiệm vụ:
     Bạn phải diễn đạt lại ngắn gọn dựa vào Tool
     Chỉ trả lời khi Tool có đáp án, nếu tool không có đáp án thì nói 'Tôi chưa rõ'
-    Dựa vào những lỗ hổng trong luận điểm của người dùng và phản biện lại
      - Quy tắc:
     Không xác nhận, khen ngợi hay nhắc lại câu hỏi hoặc phản biện của đối phương mà vào thẳng câu trả lời
     Nói chuyện lịch sự, văn minh
@@ -79,3 +78,6 @@ def agent_twos(q, history: list[dict] | None = None, return_history: bool = Fals
         return rs['output'], updated_history
     return rs['output']
 
+if __name__ == '__main__':
+    rs = agent_twos(q = "Tôi nghĩ Việt Nam sẽ đăng cai world cup 2030")
+    print(rs)
