@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchChatReview, sendChatStep } from '../api'
 
 function Message({ m }) {
@@ -39,48 +39,51 @@ function formatTopicTitle(topic) {
 }
 
 export default function Chat({ session, onSessionUpdate, onSessionReview }) {
+  const sessionId = session?.id || ''
+  const topic = session?.topic || ''
+  const savedReview = session?.review || ''
   const [messages, setMessages] = useState(session?.messages || [])
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [review, setReview] = useState(session?.review || '')
-  const [showReview, setShowReview] = useState(Boolean(session?.review))
+  const [review, setReview] = useState(savedReview)
+  const [showReview, setShowReview] = useState(Boolean(savedReview))
   const cancelRef = useRef(false)
   const finalizedRef = useRef(false)
   const containerRef = useRef(null)
 
   useEffect(() => {
     setMessages(session?.messages || [])
-    setReview(session?.review || '')
-    setShowReview(Boolean(session?.review))
+    setReview(savedReview)
+    setShowReview(Boolean(savedReview))
     setRunning(false)
     setProgress(0)
     cancelRef.current = true
-    finalizedRef.current = Boolean(session?.review)
-  }, [session?.id])
+    finalizedRef.current = Boolean(savedReview)
+  }, [sessionId])
 
   const finalizeDiscussion = useCallback(async () => {
-    if (!session || finalizedRef.current) return
+    if (!sessionId || !topic || finalizedRef.current) return
     finalizedRef.current = true
     cancelRef.current = true
     setRunning(false)
     setProgress(100)
 
     try {
-      const result = await fetchChatReview({ topic: session.topic, sessionId: session.id })
+      const result = await fetchChatReview({ topic, sessionId })
       const nextReview = result.review || 'Chưa có kết luận.'
       setReview(nextReview)
       setShowReview(true)
-      onSessionReview && onSessionReview(session.id, nextReview)
+      onSessionReview && onSessionReview(sessionId, nextReview)
     } catch (error) {
       console.error('Chat review failed', error)
       const fallbackReview = 'Chưa lấy được kết luận. Vui lòng thử lại.'
       setReview(fallbackReview)
       setShowReview(true)
     }
-  }, [session, onSessionReview])
+  }, [sessionId, topic, onSessionReview])
 
   useEffect(() => {
-    if (!session || !session.topic) {
+    if (!sessionId || !topic) {
       setMessages([])
       setReview('')
       setShowReview(false)
@@ -90,27 +93,29 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       return
     }
 
-    if (session.messages && session.messages.length > 0) {
+    if (savedReview) {
       return
     }
 
+    const initialMessages = session?.messages || []
     cancelRef.current = false
     finalizedRef.current = false
-    setMessages([])
+    setMessages(initialMessages)
     setReview('')
     setShowReview(false)
     setRunning(true)
     setProgress(0)
-    let step = 0
+    let step = Math.floor(initialMessages.length / 2)
 
     async function runConversation() {
       while (!cancelRef.current) {
         try {
-          const result = await sendChatStep({ topic: session.topic, step, sessionId: session.id })
+          const result = await sendChatStep({ topic, step, sessionId })
           if (cancelRef.current) return
+          const nextMessages = result.messages || []
           setMessages(prev => {
-            const next = [...prev, ...result.messages]
-            onSessionUpdate && onSessionUpdate(session.id, next)
+            const next = [...prev, ...nextMessages]
+            onSessionUpdate && onSessionUpdate(sessionId, next)
             return next
           })
           step = result.step
@@ -127,7 +132,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     return () => {
       cancelRef.current = true
     }
-  }, [session?.id, session?.topic, onSessionUpdate])
+  }, [sessionId, topic, onSessionUpdate])
 
   function handleStop() {
     cancelRef.current = true
@@ -136,28 +141,24 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   }
 
   useEffect(() => {
-    if (!running || !session?.topic) return
+    if (!running || !topic || savedReview) return
 
     const totalMs = 3 * 60 * 1000
     const start = Date.now()
     const finishTimer = window.setTimeout(() => {
       finalizeDiscussion()
     }, totalMs)
-    const timer = window.setInterval(() => {
+    const progressTimer = window.setInterval(() => {
       const elapsed = Date.now() - start
       const nextProgress = Math.min(100, (elapsed / totalMs) * 100)
       setProgress(nextProgress)
-      if (nextProgress >= 100) {
-        window.clearInterval(timer)
-        finalizeDiscussion()
-      }
     }, 200)
 
     return () => {
       window.clearTimeout(finishTimer)
-      window.clearInterval(timer)
+      window.clearInterval(progressTimer)
     }
-  }, [running, session?.topic, finalizeDiscussion])
+  }, [running, topic, savedReview, finalizeDiscussion])
 
   useEffect(() => {
     if (containerRef.current) {
@@ -169,7 +170,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     <div className="chat-area">
       <div className="chat-header">
         <span className="chat-title">Trò chuyện</span>
-        <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(session.topic)}` : 'Tên chủ đề: ...'}</span>
+        <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(topic)}` : 'Tên chủ đề: ...'}</span>
         <button className="stop-btn" onClick={handleStop} disabled={!running}>
           Dừng thảo luận
         </button>
