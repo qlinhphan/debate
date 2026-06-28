@@ -246,7 +246,7 @@ function DebateChat({ session, onSessionUpdate, onSessionReview }) {
       <div className="chat-surface">
         <div className="chat-header">
           <span className="chat-title">Trò chuyện</span>
-          <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(topic)}` : 'Tên chủ đề: ...'}</span>
+          <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(topic)}` : ''}</span>
           <button className="stop-btn" onClick={handleStop} disabled={!running}>
             Dừng thảo luận
           </button>
