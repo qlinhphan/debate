@@ -46,9 +46,10 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   const discussionStartedAt = session?.discussionStartedAt || null
   const [messages, setMessages] = useState(session?.messages || [])
   const [running, setRunning] = useState(false)
+  const [reviewing, setReviewing] = useState(false)
   const [progress, setProgress] = useState(0)
   const [review, setReview] = useState(savedReview)
-  const [showReview, setShowReview] = useState(Boolean(savedReview))
+  const [showReview, setShowReview] = useState(false)
   const cancelRef = useRef(false)
   const finalizedRef = useRef(false)
   const containerRef = useRef(null)
@@ -56,7 +57,8 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   useEffect(() => {
     setMessages(session?.messages || [])
     setReview(savedReview)
-    setShowReview(Boolean(savedReview))
+    setShowReview(false)
+    setReviewing(false)
     setRunning(false)
     setProgress(0)
     cancelRef.current = true
@@ -68,6 +70,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     finalizedRef.current = true
     cancelRef.current = true
     setRunning(false)
+    setReviewing(true)
     setProgress(100)
 
     try {
@@ -81,6 +84,8 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       const fallbackReview = 'Chưa lấy được kết luận. Vui lòng thử lại.'
       setReview(fallbackReview)
       setShowReview(true)
+    } finally {
+      setReviewing(false)
     }
   }, [sessionId, topic, onSessionReview])
 
@@ -89,6 +94,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       setMessages([])
       setReview('')
       setShowReview(false)
+      setReviewing(false)
       setRunning(false)
       cancelRef.current = true
       finalizedRef.current = false
@@ -106,7 +112,9 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     setMessages(initialMessages)
     setReview('')
     setShowReview(false)
+    setReviewing(false)
     setRunning(true)
+
     const totalMs = 3 * 60 * 1000
     const startedAt = discussionStartedAt || Date.now()
     const elapsed = Date.now() - startedAt
@@ -179,31 +187,41 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
 
   return (
     <div className="chat-area">
-      <div className="chat-header">
-        <span className="chat-title">Trò chuyện</span>
-        <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(topic)}` : 'Tên chủ đề: ...'}</span>
-        <button className="stop-btn" onClick={handleStop} disabled={!running}>
-          Dừng thảo luận
-        </button>
-      </div>
-      {running && (
-        <div className="progress-wrap" aria-label="Tiến trình thảo luận">
-          <div className="progress-label">Đang thảo luận...</div>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${progress}%` }} />
-          </div>
+      <div className="chat-surface">
+        <div className="chat-header">
+          <span className="chat-title">Trò chuyện</span>
+          <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(topic)}` : 'Tên chủ đề: ...'}</span>
+          <button className="stop-btn" onClick={handleStop} disabled={!running}>
+            Dừng thảo luận
+          </button>
         </div>
-      )}
-      <div className="chat-messages" ref={containerRef}>
-        {messages.map((m, i) => (
-          <Message key={i} m={m} />
-        ))}
+        {reviewing && (
+          <div className="final-report-loader" aria-label="Đang xuất báo cáo cuối">
+            <div className="final-report-copy">Đang xuất báo cáo cuối...</div>
+            <div className="final-report-track">
+              <div className="final-report-bar" />
+            </div>
+          </div>
+        )}
+        {running && (
+          <div className="progress-wrap" aria-label="Tiến trình thảo luận">
+            <div className="progress-label">Đang thảo luận...</div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        )}
+        <div className="chat-messages" ref={containerRef}>
+          {messages.map((m, i) => (
+            <Message key={i} m={m} />
+          ))}
+        </div>
+        {review && !showReview && (
+          <button className="review-reopen" onClick={() => setShowReview(true)}>
+            Xem kết luận
+          </button>
+        )}
       </div>
-      {review && !showReview && (
-        <button className="review-reopen" onClick={() => setShowReview(true)}>
-          Xem kết luận
-        </button>
-      )}
       <ReviewModal review={showReview ? review : ''} onClose={() => setShowReview(false)} />
     </div>
   )
