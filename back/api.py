@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, TypedDict
 from uuid import uuid4
 
-from main import run_agent_cycle
+from main import run_agent_cycle, run_agent_review
 from storage import get_conversation, list_conversations, upsert_conversation
 
 
@@ -29,6 +29,16 @@ class ChatStepResponse(BaseModel):
     step: int
     done: bool
     review: Optional[str] = None
+
+
+class ChatReviewRequest(BaseModel):
+    topic: str
+    session_id: str
+
+
+class ChatReviewResponse(BaseModel):
+    session_id: str
+    review: str
 
 
 class BaseInps(TypedDict, total=False):
@@ -114,15 +124,37 @@ def api_chat_step(request: ChatStepRequest):
         messages=all_messages,
         summary=summarize_topic(topic),
     )
-    print(f"[api/chat/step] session_id={session_id} topic={topic} step={step} done={done}")
+    print(f"[api/chat/step] session_id={session_id} topic={topic} step={step}")
     print(messages)
     return ChatStepResponse(
         session_id=session_id,
         messages=messages,
         step=step + 1,
-        done=done,
-        review=review or None,
+        done=False,
+        review=None,
     )
+
+
+@app.post('/api/chat/review', response_model=ChatReviewResponse)
+def api_chat_review(request: ChatReviewRequest):
+    saved_conversation = get_conversation(request.session_id)
+    current_state = (
+        saved_conversation.get("state")
+        if saved_conversation
+        else conversation_states.get(request.session_id)
+    )
+    updated_state, review = run_agent_review(request.topic, current_state)
+    conversation_states[request.session_id] = updated_state
+    messages = saved_conversation.get("messages", []) if saved_conversation else []
+    upsert_conversation(
+        conversation_id=request.session_id,
+        topic=request.topic,
+        state=updated_state,
+        messages=messages,
+        summary=summarize_topic(request.topic),
+    )
+    print(f"[api/chat/review] session_id={request.session_id} topic={request.topic}")
+    return ChatReviewResponse(session_id=request.session_id, review=review)
 
 
 @app.get('/api/conversations')

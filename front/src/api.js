@@ -8,6 +8,16 @@ export async function sendChatStep({ topic, step = 0, sessionId }) {
   return res.json()
 }
 
+export async function fetchChatReview({ topic, sessionId }) {
+  const res = await fetch('/api/chat/review', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic, session_id: sessionId })
+  })
+  if (!res.ok) throw new Error('API error')
+  return res.json()
+}
+
 export async function fetchConversations() {
   const res = await fetch('/api/conversations')
   if (!res.ok) throw new Error('API error')

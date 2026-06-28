@@ -56,6 +56,7 @@ def list_conversations() -> list[dict[str, Any]]:
                     "topic": conversation.get("topic", ""),
                     "summary": conversation.get("summary", ""),
                     "messages": messages,
+                    "review": (conversation.get("state") or {}).get("review", ""),
                     "created_at": conversation.get("created_at", ""),
                     "updated_at": conversation.get("updated_at", ""),
                 }

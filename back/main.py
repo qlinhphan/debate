@@ -21,9 +21,6 @@ TYPE_SENTENCE = [
     "Sáng tạo",
     "Ý kiến/gợi ý",
 ]
-MAX_DISCUSSION_PAIRS = 2
-
-
 class BaseInps(TypedDict, total=False):
     check: str
     inp: str
@@ -84,15 +81,7 @@ def run_agent_cycle(topic: str, state: dict | None = None):
     person1 = [*current_state.get("person1", []), response_1]
     person2 = [*current_state.get("person2", []), response_2]
     pair_count = int(current_state.get("call", 0)) + 1
-    done = pair_count >= MAX_DISCUSSION_PAIRS
     review = current_state.get("review", "")
-
-    if done and not review:
-        review = agent_reviews(
-            {"person1": person1, "person2": person2},
-            current_state.get("inp") or topic,
-            type_q,
-        )
 
     updated_state: BaseInps = {
         "check": current_state.get("check", topic),
@@ -107,4 +96,30 @@ def run_agent_cycle(topic: str, state: dict | None = None):
         "agent_two_history": updated_two_history,
         "review": review,
     }
-    return updated_state, response_1, response_2, done, review
+    return updated_state, response_1, response_2, False, review
+
+
+def run_agent_review(topic: str, state: dict | None = None):
+    current_state: BaseInps = state or _initial_state(topic)
+    review = current_state.get("review", "")
+    if review:
+        return current_state, review
+
+    type_q = current_state.get("type_q") or _detect_question_type(topic)
+    person1 = current_state.get("person1", [])
+    person2 = current_state.get("person2", [])
+    if not person1 or not person2:
+        review = "Chưa có đủ dữ liệu thảo luận để kết luận."
+    else:
+        review = agent_reviews(
+            {"person1": person1, "person2": person2},
+            current_state.get("inp") or topic,
+            type_q,
+        )
+
+    updated_state: BaseInps = {
+        **current_state,
+        "type_q": type_q,
+        "review": review,
+    }
+    return updated_state, review

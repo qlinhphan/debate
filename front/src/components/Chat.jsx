@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { sendChatStep } from '../api'
+import { fetchChatReview, sendChatStep } from '../api'
 
 function Message({ m }) {
   const left = m.agent === 1
@@ -45,6 +45,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   const [review, setReview] = useState(session?.review || '')
   const [showReview, setShowReview] = useState(Boolean(session?.review))
   const cancelRef = useRef(false)
+  const finalizedRef = useRef(false)
   const containerRef = useRef(null)
 
   useEffect(() => {
@@ -54,7 +55,29 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     setRunning(false)
     setProgress(0)
     cancelRef.current = true
+    finalizedRef.current = Boolean(session?.review)
   }, [session?.id])
+
+  async function finalizeDiscussion() {
+    if (!session || finalizedRef.current) return
+    finalizedRef.current = true
+    cancelRef.current = true
+    setRunning(false)
+    setProgress(100)
+
+    try {
+      const result = await fetchChatReview({ topic: session.topic, sessionId: session.id })
+      const nextReview = result.review || 'Chưa có kết luận.'
+      setReview(nextReview)
+      setShowReview(true)
+      onSessionReview && onSessionReview(session.id, nextReview)
+    } catch (error) {
+      console.error('Chat review failed', error)
+      const fallbackReview = 'Chưa lấy được kết luận. Vui lòng thử lại.'
+      setReview(fallbackReview)
+      setShowReview(true)
+    }
+  }
 
   useEffect(() => {
     if (!session || !session.topic) {
@@ -63,6 +86,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       setShowReview(false)
       setRunning(false)
       cancelRef.current = true
+      finalizedRef.current = false
       return
     }
 
@@ -71,6 +95,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     }
 
     cancelRef.current = false
+    finalizedRef.current = false
     setMessages([])
     setReview('')
     setShowReview(false)
@@ -88,15 +113,6 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
             onSessionUpdate && onSessionUpdate(session.id, next)
             return next
           })
-          if (result.done) {
-            const nextReview = result.review || 'Chưa có kết luận.'
-            setReview(nextReview)
-            setShowReview(true)
-            onSessionReview && onSessionReview(session.id, nextReview)
-            setRunning(false)
-            setProgress(100)
-            return
-          }
           step = result.step
         } catch (error) {
           console.error('Chat step failed', error)
@@ -111,7 +127,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     return () => {
       cancelRef.current = true
     }
-  }, [session?.id, session?.topic, onSessionUpdate, onSessionReview])
+  }, [session?.id, session?.topic, onSessionUpdate])
 
   function handleStop() {
     cancelRef.current = true
@@ -129,10 +145,8 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       const nextProgress = Math.min(100, (elapsed / totalMs) * 100)
       setProgress(nextProgress)
       if (nextProgress >= 100) {
-        cancelRef.current = true
-        setRunning(false)
-        setProgress(100)
         window.clearInterval(timer)
+        finalizeDiscussion()
       }
     }, 200)
 
