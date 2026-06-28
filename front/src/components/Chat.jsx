@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import { fetchChatReview, sendChatStep } from '../api'
 
 function Message({ m }) {
@@ -58,7 +58,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     finalizedRef.current = Boolean(session?.review)
   }, [session?.id])
 
-  async function finalizeDiscussion() {
+  const finalizeDiscussion = useCallback(async () => {
     if (!session || finalizedRef.current) return
     finalizedRef.current = true
     cancelRef.current = true
@@ -77,7 +77,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       setReview(fallbackReview)
       setShowReview(true)
     }
-  }
+  }, [session, onSessionReview])
 
   useEffect(() => {
     if (!session || !session.topic) {
@@ -140,6 +140,9 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
 
     const totalMs = 3 * 60 * 1000
     const start = Date.now()
+    const finishTimer = window.setTimeout(() => {
+      finalizeDiscussion()
+    }, totalMs)
     const timer = window.setInterval(() => {
       const elapsed = Date.now() - start
       const nextProgress = Math.min(100, (elapsed / totalMs) * 100)
@@ -150,8 +153,11 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       }
     }, 200)
 
-    return () => window.clearInterval(timer)
-  }, [running, session?.topic])
+    return () => {
+      window.clearTimeout(finishTimer)
+      window.clearInterval(timer)
+    }
+  }, [running, session?.topic, finalizeDiscussion])
 
   useEffect(() => {
     if (containerRef.current) {
@@ -181,6 +187,11 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
           <Message key={i} m={m} />
         ))}
       </div>
+      {review && !showReview && (
+        <button className="review-reopen" onClick={() => setShowReview(true)}>
+          Xem kết luận
+        </button>
+      )}
       <ReviewModal review={showReview ? review : ''} onClose={() => setShowReview(false)} />
     </div>
   )
