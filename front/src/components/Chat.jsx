@@ -38,7 +38,63 @@ function formatTopicTitle(topic) {
   return firstFive.length < words.length ? `${firstFive.join(' ')} ...` : firstFive.join(' ')
 }
 
-export default function Chat({ session, onSessionUpdate, onSessionReview }) {
+function ToolWorkspace({ type }) {
+  const isRag = type === 'rag'
+  return (
+    <div className="chat-area">
+      <div className="tool-workspace">
+        <div className="tool-panel tool-primary">
+          <div className="tool-kicker">{isRag ? 'RAG Workspace' : 'Document QA'}</div>
+          <h1>{isRag ? 'Hỏi đáp tài liệu' : 'Kiểm tra lỗi tài liệu'}</h1>
+          <div className="tool-upload">
+            <div className="upload-icon">{isRag ? 'RAG' : 'DOC'}</div>
+            <div>
+              <div className="upload-title">Thả tài liệu vào đây</div>
+              <div className="upload-subtitle">PDF, DOCX, TXT hoặc Markdown</div>
+            </div>
+            <button type="button" className="upload-button">Chọn tệp</button>
+          </div>
+          <textarea
+            className="tool-textarea"
+            placeholder={isRag ? 'Nhập câu hỏi về tài liệu...' : 'Nhập tiêu chí hoặc loại lỗi cần kiểm tra...'}
+          />
+          <button type="button" className="tool-submit">
+            {isRag ? 'Hỏi tài liệu' : 'Kiểm tra tài liệu'}
+          </button>
+        </div>
+        <div className="tool-panel tool-result">
+          <div className="tool-kicker">Kết quả</div>
+          <div className="result-placeholder">
+            {isRag
+              ? 'Câu trả lời dựa trên tài liệu sẽ hiển thị tại đây.'
+              : 'Danh sách lỗi, cảnh báo và đề xuất chỉnh sửa sẽ hiển thị tại đây.'}
+          </div>
+          <div className="result-grid">
+            <div><span>Nguồn</span><strong>0</strong></div>
+            <div><span>Độ tin cậy</span><strong>--</strong></div>
+            <div><span>Trạng thái</span><strong>Chưa chạy</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Chat({ session, activeTool = 'chat', onSessionUpdate, onSessionReview }) {
+  if (activeTool === 'rag' || activeTool === 'doc-check') {
+    return <ToolWorkspace type={activeTool} />
+  }
+
+  return (
+    <DebateChat
+      session={session}
+      onSessionUpdate={onSessionUpdate}
+      onSessionReview={onSessionReview}
+    />
+  )
+}
+
+function DebateChat({ session, onSessionUpdate, onSessionReview }) {
   const sessionId = session?.id || ''
   const topic = session?.topic || ''
   const savedReview = session?.review || ''

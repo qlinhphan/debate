@@ -1,6 +1,16 @@
 import React, { useState } from 'react'
 
-export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat, topicHistory = [], onSelectHistory, activeSessionId }) {
+export default function Sidebar({
+  open = true,
+  onToggle,
+  onSendTopic,
+  onNewChat,
+  topicHistory = [],
+  onSelectHistory,
+  activeSessionId,
+  activeTool = 'chat',
+  onSelectTool,
+}) {
   const [topic, setTopic] = useState('')
   const [historyOpen, setHistoryOpen] = useState(true)
 
@@ -9,6 +19,10 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
     if (!cleanTopic) return
     onSendTopic && onSendTopic(cleanTopic)
     setTopic('')
+  }
+
+  function handleToolSelect(tool) {
+    onSelectTool && onSelectTool(tool)
   }
 
   return (
@@ -21,8 +35,8 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
           <img src="/over.png" alt="think continuosly" />
         </div>
         <div className="title-wrap">
-          <h3 className="title">AI Debate </h3>
-          <div className="subtitle">Think continously & decide efficently</div>
+          <h3 className="title">AI Debate</h3>
+          <div className="subtitle">Think continuously & decide efficiently</div>
         </div>
       </div>
       <div className="sidebar-body">
@@ -61,7 +75,7 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
                 topicHistory.map((item) => (
                   <button
                     type="button"
-                    className={`history-item ${item.id === activeSessionId ? 'active' : ''}`}
+                    className={`history-item ${item.id === activeSessionId && activeTool === 'chat' ? 'active' : ''}`}
                     key={item.id}
                     onClick={() => onSelectHistory && onSelectHistory(item.id)}
                   >
@@ -74,7 +88,26 @@ export default function Sidebar({ open = true, onToggle, onSendTopic, onNewChat,
         </div>
       </div>
       <div className="sidebar-footer">
-        <button className="new-chat" onClick={onNewChat}>Trò chuyện mới</button>
+        <button className="footer-action new-chat" onClick={onNewChat}>Trò chuyện mới</button>
+        <div className="more-actions">
+          <button className={`footer-action more-action ${activeTool !== 'chat' ? 'active' : ''}`}>Chức năng khác</button>
+          <div className="tool-menu">
+            <button
+              type="button"
+              className={activeTool === 'rag' ? 'active' : ''}
+              onClick={() => handleToolSelect('rag')}
+            >
+              Hỏi đáp tài liệu (RAG)
+            </button>
+            <button
+              type="button"
+              className={activeTool === 'doc-check' ? 'active' : ''}
+              onClick={() => handleToolSelect('doc-check')}
+            >
+              Kiểm tra lỗi tài liệu
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -15,6 +15,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sessions, setSessions] = useState([])
   const [activeSessionId, setActiveSessionId] = useState(null)
+  const [activeTool, setActiveTool] = useState('chat')
 
   useEffect(() => {
     let cancelled = false
@@ -55,6 +56,7 @@ export default function App() {
   }
 
   function handleSendTopic(selectedTopic) {
+    setActiveTool('chat')
     const sessionId = createSession(selectedTopic)
     if (sessionId) {
       setSessions(prev => prev.map(s => ({ ...s, isCurrent: s.id === sessionId })))
@@ -62,6 +64,7 @@ export default function App() {
   }
 
   function handleNewChat() {
+    setActiveTool('chat')
     setActiveSessionId(null)
   }
 
@@ -80,6 +83,7 @@ export default function App() {
   }, [])
 
   async function handleSelectHistory(sessionId) {
+    setActiveTool('chat')
     setActiveSessionId(sessionId)
     setSessions(prev => prev.map(s => ({ ...s, isCurrent: s.id === sessionId })))
 
@@ -110,10 +114,13 @@ export default function App() {
         topicHistory={sessions}
         onSelectHistory={handleSelectHistory}
         activeSessionId={activeSessionId}
+        activeTool={activeTool}
+        onSelectTool={setActiveTool}
       />
       <Chat
         key={activeSessionId || 'new'}
         session={activeSession}
+        activeTool={activeTool}
         onSessionUpdate={handleSessionUpdate}
         onSessionReview={handleSessionReview}
       />
