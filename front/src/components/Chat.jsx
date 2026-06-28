@@ -42,6 +42,8 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   const sessionId = session?.id || ''
   const topic = session?.topic || ''
   const savedReview = session?.review || ''
+  const isRunningSession = session?.status === 'running'
+  const discussionStartedAt = session?.discussionStartedAt || null
   const [messages, setMessages] = useState(session?.messages || [])
   const [running, setRunning] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -93,7 +95,8 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       return
     }
 
-    if (savedReview) {
+    if (savedReview || !isRunningSession) {
+      setRunning(false)
       return
     }
 
@@ -104,7 +107,14 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     setReview('')
     setShowReview(false)
     setRunning(true)
-    setProgress(0)
+    const totalMs = 3 * 60 * 1000
+    const startedAt = discussionStartedAt || Date.now()
+    const elapsed = Date.now() - startedAt
+    if (elapsed >= totalMs) {
+      finalizeDiscussion()
+      return
+    }
+    setProgress(Math.min(100, (elapsed / totalMs) * 100))
     let step = Math.floor(initialMessages.length / 2)
 
     async function runConversation() {
@@ -132,7 +142,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
     return () => {
       cancelRef.current = true
     }
-  }, [sessionId, topic, onSessionUpdate])
+  }, [sessionId, topic, isRunningSession, discussionStartedAt, savedReview, finalizeDiscussion, onSessionUpdate])
 
   function handleStop() {
     cancelRef.current = true
@@ -141,15 +151,16 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
   }
 
   useEffect(() => {
-    if (!running || !topic || savedReview) return
+    if (!running || !topic || savedReview || !isRunningSession) return
 
     const totalMs = 3 * 60 * 1000
-    const start = Date.now()
+    const startedAt = discussionStartedAt || Date.now()
+    const remainingMs = Math.max(0, totalMs - (Date.now() - startedAt))
     const finishTimer = window.setTimeout(() => {
       finalizeDiscussion()
-    }, totalMs)
+    }, remainingMs)
     const progressTimer = window.setInterval(() => {
-      const elapsed = Date.now() - start
+      const elapsed = Date.now() - startedAt
       const nextProgress = Math.min(100, (elapsed / totalMs) * 100)
       setProgress(nextProgress)
     }, 200)
@@ -158,7 +169,7 @@ export default function Chat({ session, onSessionUpdate, onSessionReview }) {
       window.clearTimeout(finishTimer)
       window.clearInterval(progressTimer)
     }
-  }, [running, topic, savedReview, finalizeDiscussion])
+  }, [running, topic, savedReview, isRunningSession, discussionStartedAt, finalizeDiscussion])
 
   useEffect(() => {
     if (containerRef.current) {

@@ -44,6 +44,8 @@ export default function App() {
       topic: cleanTopic,
       summary: summarizeTopic(cleanTopic),
       messages: [],
+      status: 'running',
+      discussionStartedAt: Date.now(),
       startedAt: new Date().toISOString(),
     }
 
@@ -73,7 +75,7 @@ export default function App() {
   const handleSessionReview = useCallback((sessionId, review) => {
     setSessions(prev => prev.map(session => {
       if (session.id !== sessionId) return session
-      return { ...session, review }
+      return { ...session, review, status: 'done' }
     }))
   }, [])
 
@@ -127,6 +129,8 @@ function normalizeSession(raw) {
     summary: raw.summary || summarizeTopic(topic),
     messages: raw.messages || [],
     review: raw.review || raw.state?.review || '',
+    status: raw.status || ((raw.review || raw.state?.review) ? 'done' : 'idle'),
+    discussionStartedAt: raw.discussionStartedAt || raw.discussion_started_at || null,
     startedAt: raw.created_at || raw.startedAt || new Date().toISOString(),
   }
 }
