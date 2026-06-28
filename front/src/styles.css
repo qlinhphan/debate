@@ -5,6 +5,7 @@
 *{box-sizing:border-box;font-family:Segoe UI,Roboto,Arial,sans-serif}
 html,body,#root{height:100%;margin:0}
 .app-root{display:flex;height:100vh;background:#050b18}
+.mobile-menu-btn{display:none}
 .sidebar{width:var(--sidebar-width);transition:width 260ms ease, transform 260ms ease;box-shadow:8px 0 36px rgba(0,12,28,0.34);background:
   radial-gradient(circle at 18% 12%,rgba(59,130,246,0.42),transparent 26%),
   radial-gradient(circle at 82% 26%,rgba(34,211,238,0.2),transparent 32%),
@@ -147,7 +148,68 @@ html,body,#root{height:100%;margin:0}
 .result-grid strong{color:#f0f9ff;font-size:15px}
 
 @media (max-width:800px){
-  :root{--sidebar-width:240px}
-  .sidebar.closed{transform:translateX(-100%)}
-  .tool-workspace{grid-template-columns:1fr}
+  :root{--sidebar-width:min(86vw,320px)}
+  html,body,#root{min-height:100%;height:100%}
+  .app-root{position:relative;width:100%;height:100dvh;overflow:hidden}
+  .mobile-menu-btn{display:flex;position:fixed;left:12px;top:12px;z-index:30;width:42px;height:42px;align-items:center;justify-content:center;border-radius:12px;border:1px solid rgba(125,211,252,0.36);background:rgba(2,8,23,0.72);color:#e0f2fe;font-size:22px;box-shadow:0 12px 28px rgba(2,8,23,0.32);backdrop-filter:blur(10px)}
+  .mobile-menu-btn.hidden{display:none}
+  .sidebar.open + .chat-area,
+  .sidebar.open ~ .chat-area{pointer-events:none}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-width);z-index:40;transform:translateX(0)}
+  .sidebar.closed{width:var(--sidebar-width);transform:translateX(calc(-100% - 16px));align-items:stretch}
+  .sidebar.closed .logo{margin:0 12px 0 0}
+  .sidebar.closed .title-wrap,
+  .sidebar.closed .sidebar-body,
+  .sidebar.closed .toggle-btn,
+  .sidebar.closed .sidebar-footer{display:flex}
+  .sidebar.closed{pointer-events:none}
+  .sidebar-header{padding:12px}
+  .toggle-btn{width:36px;height:36px;flex:0 0 auto}
+  .title{font-size:15px}
+  .subtitle{font-size:11px}
+  .sidebar-body{padding:12px;gap:12px}
+  .sidebar-footer{padding:12px;gap:8px}
+  .footer-action{font-size:11px;padding:9px 8px}
+  .tool-menu{right:0;width:min(220px,72vw)}
+
+  .chat-area{width:100%;min-width:0;flex:1}
+  .chat-surface{padding:64px 10px 10px}
+  .chat-header{display:grid;grid-template-columns:1fr auto;grid-template-areas:"title stop" "topic topic";gap:8px;padding:10px}
+  .chat-title{grid-area:title}
+  .topic-title{grid-area:topic;text-align:left;font-size:0.86rem;white-space:normal;line-height:1.35}
+  .stop-btn{grid-area:stop;padding:8px 10px;font-size:0.82rem}
+  .progress-wrap,.final-report-loader{padding:9px 10px;margin-bottom:10px}
+  .chat-messages{padding:8px 4px;gap:10px}
+  .message-row{align-items:flex-start}
+  .ai-badge{width:34px;height:34px;margin:0 6px;flex:0 0 auto}
+  .bubble{max-width:calc(100% - 58px);font-size:0.92rem;line-height:1.45;padding:10px 11px}
+  .review-reopen{right:14px;bottom:14px;padding:10px 13px;font-size:0.86rem}
+  .review-overlay{padding:12px}
+  .review-modal{max-height:82dvh;border-radius:14px}
+  .review-header{padding:16px 16px 12px}
+  .review-title{font-size:18px}
+  .review-body{padding:14px 16px 18px;font-size:0.94rem}
+
+  .tool-workspace{grid-template-columns:1fr;padding:64px 10px 10px;gap:12px;overflow:auto}
+  .tool-panel{padding:14px;border-radius:14px}
+  .tool-panel h1{font-size:22px}
+  .tool-upload{grid-template-columns:44px 1fr;gap:10px}
+  .upload-icon{width:44px;height:44px;border-radius:12px}
+  .upload-button{grid-column:1 / -1;width:100%}
+  .tool-textarea{min-height:130px}
+  .result-grid{grid-template-columns:1fr}
+}
+
+@media (max-width:480px){
+  .sidebar{width:min(92vw,340px)}
+  .sidebar-footer{flex-direction:column;align-items:stretch}
+  .more-actions{justify-content:stretch}
+  .footer-action,.more-action{width:100%}
+  .tool-menu{left:0;right:auto;width:100%;bottom:calc(100% + 8px)}
+  .chat-surface{padding-left:8px;padding-right:8px}
+  .chat-header{grid-template-columns:1fr;grid-template-areas:"title" "topic" "stop"}
+  .stop-btn{justify-self:start}
+  .message-row.left .ai-badge{margin-left:0}
+  .message-row.right .ai-badge{margin-right:0}
+  .bubble{max-width:calc(100% - 46px)}
 }

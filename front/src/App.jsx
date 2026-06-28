@@ -106,6 +106,13 @@ export default function App() {
 
   return (
     <div className="app-root">
+      <button
+        className={`mobile-menu-btn ${sidebarOpen ? 'hidden' : ''}`}
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Mở thanh bên"
+      >
+        ☰
+      </button>
       <Sidebar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(v => !v)}
