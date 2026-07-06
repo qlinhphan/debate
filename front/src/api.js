@@ -30,3 +30,19 @@ export async function fetchConversation(sessionId) {
   return res.json()
 }
 
+export async function fetchMultiDocPrompt() {
+  const res = await fetch('/api/prompts/nhieutailieu')
+  if (!res.ok) throw new Error('API error')
+  return res.json()
+}
+
+export async function saveMultiDocPrompt(prompt) {
+  const res = await fetch('/api/prompts/nhieutailieu', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  })
+  if (!res.ok) throw new Error('API error')
+  return res.json()
+}
+

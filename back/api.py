@@ -4,6 +4,7 @@ from typing import Optional, TypedDict
 from uuid import uuid4
 
 from main import run_agent_cycle, run_agent_review
+from prompt_store import get_multi_doc_prompt, save_multi_doc_prompt
 from storage import get_conversation, list_conversations, upsert_conversation
 
 
@@ -39,6 +40,17 @@ class ChatReviewRequest(BaseModel):
 class ChatReviewResponse(BaseModel):
     session_id: str
     review: str
+
+
+class PromptResponse(BaseModel):
+    name: str
+    file_name: str
+    prompt: str
+    updated_at: str = ""
+
+
+class PromptUpdateRequest(BaseModel):
+    prompt: str
 
 
 class BaseInps(TypedDict, total=False):
@@ -168,6 +180,16 @@ def api_conversation(conversation_id: str):
     if not conversation:
         return {"conversation": None}
     return {"conversation": conversation}
+
+
+@app.get('/api/prompts/nhieutailieu', response_model=PromptResponse)
+def api_get_multi_doc_prompt():
+    return get_multi_doc_prompt()
+
+
+@app.put('/api/prompts/nhieutailieu', response_model=PromptResponse)
+def api_save_multi_doc_prompt(request: PromptUpdateRequest):
+    return save_multi_doc_prompt(request.prompt)
 
 
 if __name__ == '__main__':

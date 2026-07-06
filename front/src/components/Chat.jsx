@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchChatReview, sendChatStep } from '../api'
+import { fetchChatReview, fetchMultiDocPrompt, saveMultiDocPrompt, sendChatStep } from '../api'
 
 function Message({ m }) {
   const left = m.agent === 1
@@ -40,6 +40,53 @@ function formatTopicTitle(topic) {
 
 function ToolWorkspace({ type }) {
   const isRag = type === 'rag'
+  const [multiDocPrompt, setMultiDocPrompt] = useState('')
+  const [promptStatus, setPromptStatus] = useState('')
+  const [promptSaving, setPromptSaving] = useState(false)
+  const [showPromptEditor, setShowPromptEditor] = useState(false)
+
+  useEffect(() => {
+    if (isRag) {
+      setMultiDocPrompt('')
+      setPromptStatus('')
+      return
+    }
+
+    let cancelled = false
+    setPromptStatus('Đang tải prompt...')
+    fetchMultiDocPrompt()
+      .then(data => {
+        if (cancelled) return
+        setMultiDocPrompt(data.prompt || '')
+        setPromptStatus(data.file_name ? `Đang dùng ${data.file_name}` : 'Đã tải prompt')
+      })
+      .catch(error => {
+        if (cancelled) return
+        console.error('Fetch prompt failed', error)
+        setPromptStatus('Chưa tải được prompt')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isRag])
+
+  async function handleSavePrompt() {
+    if (isRag || promptSaving) return
+    setPromptSaving(true)
+    setPromptStatus('Đang lưu prompt...')
+    try {
+      const data = await saveMultiDocPrompt(multiDocPrompt)
+      setMultiDocPrompt(data.prompt || '')
+      setPromptStatus(`Đã lưu vào ${data.file_name || 'prompt_nhieutailieu.json'}`)
+    } catch (error) {
+      console.error('Save prompt failed', error)
+      setPromptStatus('Lưu prompt thất bại')
+    } finally {
+      setPromptSaving(false)
+    }
+  }
+
   return (
     <div className="chat-area">
       <div className="tool-workspace">
@@ -50,7 +97,7 @@ function ToolWorkspace({ type }) {
             <div className="upload-icon">{isRag ? 'RAG' : 'DOC'}</div>
             <div>
               <div className="upload-title">Thả tài liệu vào đây</div>
-              <div className="upload-subtitle">PDF, DOCX, TXT hoặc Markdown</div>
+              <div className="upload-subtitle">File: PDF, DOCX-WORD, TXT</div>
             </div>
             <button type="button" className="upload-button">Chọn tệp</button>
           </div>
@@ -58,9 +105,42 @@ function ToolWorkspace({ type }) {
             className="tool-textarea"
             placeholder={isRag ? 'Nhập câu hỏi về tài liệu...' : 'Nhập tiêu chí hoặc loại lỗi cần kiểm tra...'}
           />
-          <button type="button" className="tool-submit">
-            {isRag ? 'Hỏi tài liệu' : 'Kiểm tra tài liệu'}
-          </button>
+          <div className="tool-action-row">
+            <button type="button" className="tool-submit">
+              {isRag ? 'Hỏi tài liệu' : 'Kiểm tra tài liệu'}
+            </button>
+            {!isRag && (
+              <button
+                type="button"
+                className={`prompt-toggle ${showPromptEditor ? 'active' : ''}`}
+                onClick={() => setShowPromptEditor(prev => !prev)}
+              >
+                Prompt nhiều tài liệu
+              </button>
+            )}
+          </div>
+          {!isRag && showPromptEditor && (
+            <div className="prompt-editor">
+              <div className="prompt-editor-header">
+                <div>
+                  <div className="prompt-editor-title">Prompt nhiều tài liệu</div>
+                  <div className="prompt-file-name">prompt_nhieutailieu.json</div>
+                </div>
+                <span className="prompt-status">{promptStatus}</span>
+              </div>
+              <textarea
+                className="prompt-textarea"
+                value={multiDocPrompt}
+                onChange={event => setMultiDocPrompt(event.target.value)}
+                placeholder="Nhập prompt kiểm tra nhiều tài liệu..."
+              />
+              <div className="prompt-actions">
+                <button type="button" className="prompt-save" onClick={handleSavePrompt} disabled={promptSaving}>
+                  {promptSaving ? 'Đang lưu...' : 'Lưu prompt'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         <div className="tool-panel tool-result">
           <div className="tool-kicker">Kết quả</div>

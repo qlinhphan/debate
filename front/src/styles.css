@@ -139,7 +139,21 @@ html,body,#root{height:100%;margin:0}
 .tool-textarea{min-height:170px;resize:vertical;border-radius:14px;border:1px solid rgba(125,211,252,0.24);background:rgba(2,8,23,0.42);color:#f0f9ff;padding:13px;outline:none;font:inherit;line-height:1.5}
 .tool-textarea::placeholder{color:#7dd3fc}
 .tool-textarea:focus{border-color:rgba(34,211,238,0.72);box-shadow:0 0 0 3px rgba(34,211,238,0.14)}
+.tool-action-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .tool-submit{align-self:flex-start}
+.prompt-toggle{border:1px solid rgba(125,211,252,0.28);border-radius:10px;background:rgba(2,8,23,0.52);color:#dff7ff;padding:10px 13px;font-weight:900;cursor:pointer;box-shadow:0 12px 26px rgba(14,165,233,0.12)}
+.prompt-toggle:hover,.prompt-toggle.active{background:linear-gradient(90deg,rgba(14,165,233,0.56),rgba(34,211,238,0.24));border-color:rgba(125,211,252,0.5);color:#ffffff}
+.prompt-editor{display:flex;flex-direction:column;gap:10px;margin-top:2px;padding-top:14px;border-top:1px solid rgba(125,211,252,0.2)}
+.prompt-editor-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.prompt-editor-title{font-size:13px;font-weight:900;color:#f0f9ff}
+.prompt-file-name{font-size:12px;color:#7dd3fc;margin-top:3px}
+.prompt-status{max-width:46%;font-size:12px;color:#bae6fd;text-align:right;line-height:1.35}
+.prompt-textarea{min-height:150px;resize:vertical;border-radius:14px;border:1px solid rgba(45,212,191,0.26);background:rgba(2,8,23,0.5);color:#f0f9ff;padding:12px;outline:none;font:inherit;font-size:13px;line-height:1.55}
+.prompt-textarea::placeholder{color:#7dd3fc}
+.prompt-textarea:focus{border-color:rgba(45,212,191,0.72);box-shadow:0 0 0 3px rgba(45,212,191,0.14)}
+.prompt-actions{display:flex;justify-content:flex-end}
+.prompt-save{border:none;border-radius:10px;background:linear-gradient(90deg,#0f766e,#22d3ee);color:#ffffff;padding:9px 12px;font-weight:900;cursor:pointer;box-shadow:0 12px 26px rgba(45,212,191,0.2)}
+.prompt-save:disabled{opacity:.62;cursor:not-allowed}
 .tool-result{display:flex;flex-direction:column;gap:16px}
 .result-placeholder{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:14px;background:rgba(8,47,73,0.32);border:1px solid rgba(125,211,252,0.16);color:#bae6fd;padding:24px;line-height:1.6}
 .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -197,6 +211,12 @@ html,body,#root{height:100%;margin:0}
   .upload-icon{width:44px;height:44px;border-radius:12px}
   .upload-button{grid-column:1 / -1;width:100%}
   .tool-textarea{min-height:130px}
+  .tool-action-row{align-items:stretch}
+  .tool-submit,.prompt-toggle{width:100%}
+  .prompt-editor-header{flex-direction:column;gap:6px}
+  .prompt-status{max-width:100%;text-align:left}
+  .prompt-textarea{min-height:130px}
+  .prompt-save{width:100%}
   .result-grid{grid-template-columns:1fr}
 }
 
