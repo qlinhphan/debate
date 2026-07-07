@@ -57,6 +57,7 @@ function ToolWorkspace({ type }) {
   const [ragUpload, setRagUpload] = useState(null)
   const [ragResult, setRagResult] = useState(null)
   const [ragBusy, setRagBusy] = useState(false)
+  const [ragLearning, setRagLearning] = useState(false)
 
   useEffect(() => {
     if (isRag) {
@@ -104,6 +105,7 @@ function ToolWorkspace({ type }) {
     const file = event.target.files?.[0]
     if (!file || ragBusy) return
     setRagBusy(true)
+    setRagLearning(true)
     setRagResult(null)
     setRagStatus('Äang upload vÃ  xá»­ lÃ½ tÃ i liá»‡u...')
     try {
@@ -115,6 +117,7 @@ function ToolWorkspace({ type }) {
       setRagUpload(null)
       setRagStatus(error.message || 'Upload tháº¥t báº¡i')
     } finally {
+      setRagLearning(false)
       setRagBusy(false)
       event.target.value = ''
     }
@@ -140,6 +143,12 @@ function ToolWorkspace({ type }) {
 
   return (
     <div className="chat-area">
+      {isRag && ragLearning && (
+        <div className="rag-learning-toast" role="status" aria-live="polite">
+          <span className="rag-learning-spinner" aria-hidden="true" />
+          <span>Hệ thống đang học tài liệu...</span>
+        </div>
+      )}
       <div className="tool-workspace">
         <div className="tool-panel tool-primary">
           <div className="tool-kicker">{isRag ? 'RAG Workspace' : 'Document QA'}</div>
