@@ -18,9 +18,10 @@ from app.rag.build_faiss import build_faissed
 
 RAG_DIR = Path(__file__).resolve().parent
 DEFAULT_USER_ID = "user_123"
+DEFAULT_TOP_K = 27
 
 
-def retrievals(q, user_id=DEFAULT_USER_ID, k=5, min_score=0.5, with_scores=False):
+def retrievals(q, user_id=DEFAULT_USER_ID, k=DEFAULT_TOP_K, min_score=0.5, with_scores=False):
     mycol = connect_mgs(os.getenv("MONGO_URI"))
     data_indb = list(mycol.find({"user_id": user_id}).sort("chunk_index", 1))
     index_path = RAG_DIR / f"{user_id}.index"
@@ -38,7 +39,7 @@ def retrievals(q, user_id=DEFAULT_USER_ID, k=5, min_score=0.5, with_scores=False
     distances, indices = index.search(q_em, k)
     results = []
     for d, i in zip(distances[0], indices[0]):
-        if i < 0 or d < min_score:
+        if i < 0 or d <= min_score:
             continue
         item = data_indb[int(i)]
         result = {

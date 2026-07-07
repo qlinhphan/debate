@@ -162,6 +162,8 @@ html,body,#root{height:100%;margin:0}
 .tool-result{display:flex;flex-direction:column;gap:16px}
 .result-placeholder{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:14px;background:rgba(8,47,73,0.32);border:1px solid rgba(125,211,252,0.16);color:#bae6fd;padding:24px;line-height:1.6}
 .rag-result{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px}
+.rag-answer-loading{flex:1;display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;border-radius:14px;background:rgba(8,47,73,0.32);border:1px solid rgba(125,211,252,0.2);color:#f0f9ff;padding:24px;line-height:1.5;font-weight:900}
+.rag-answer-spinner{width:18px;height:18px;border-radius:50%;border:2px solid rgba(125,211,252,0.28);border-top-color:#67e8f9;flex:0 0 auto;animation:ragSpin .8s linear infinite}
 .rag-answer{white-space:pre-wrap;line-height:1.6;color:#f0f9ff;background:rgba(8,47,73,0.32);border:1px solid rgba(125,211,252,0.18);border-radius:14px;padding:14px}
 .rag-sources{display:flex;flex-direction:column;gap:10px}
 .rag-source{border-radius:12px;background:rgba(15,23,42,0.54);border:1px solid rgba(125,211,252,0.16);padding:12px}

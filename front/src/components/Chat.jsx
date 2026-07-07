@@ -45,6 +45,36 @@ function formatTopicTitle(topic) {
   return firstFive.length < words.length ? `${firstFive.join(' ')} ...` : firstFive.join(' ')
 }
 
+const RAG_LOADING_MESSAGES = [
+  'Đang phân tích câu hỏi của bạn...',
+  'Xác định chủ đề chính...',
+  'Tìm kiếm thông tin liên quan...',
+  'Đối chiếu với dữ liệu hiện có...',
+  'Đánh giá mức độ phù hợp...',
+  'Tổng hợp các thông tin quan trọng...',
+  'Kiểm tra tính nhất quán của dữ liệu...',
+  'Xác định các điểm cần ưu tiên...',
+  'Loại bỏ thông tin không liên quan...',
+  'Liên kết các dữ kiện với nhau...',
+  'Phân tích các khả năng có thể...',
+  'Đánh giá độ tin cậy của kết quả...',
+  'Chuẩn bị nội dung phản hồi...',
+  'Sắp xếp câu trả lời rõ ràng...',
+  'Kiểm tra lần cuối trước khi trả lời...',
+  'Hoàn thiện câu trả lời...',
+  'Sẵn sàng gửi kết quả...',
+]
+
+function pickRandomLoadingMessage(currentMessage = '') {
+  if (RAG_LOADING_MESSAGES.length <= 1) return RAG_LOADING_MESSAGES[0]
+  let nextMessage = currentMessage
+  while (nextMessage === currentMessage) {
+    const index = Math.floor(Math.random() * RAG_LOADING_MESSAGES.length)
+    nextMessage = RAG_LOADING_MESSAGES[index]
+  }
+  return nextMessage
+}
+
 function ToolWorkspace({ type }) {
   const isRag = type === 'rag'
   const fileInputRef = useRef(null)
@@ -58,6 +88,8 @@ function ToolWorkspace({ type }) {
   const [ragResult, setRagResult] = useState(null)
   const [ragBusy, setRagBusy] = useState(false)
   const [ragLearning, setRagLearning] = useState(false)
+  const [ragAnswerLoading, setRagAnswerLoading] = useState(false)
+  const [ragLoadingMessage, setRagLoadingMessage] = useState(RAG_LOADING_MESSAGES[0])
 
   useEffect(() => {
     if (isRag) {
@@ -127,6 +159,9 @@ function ToolWorkspace({ type }) {
     const question = ragQuestion.trim()
     if (!question || ragBusy) return
     setRagBusy(true)
+    setRagAnswerLoading(true)
+    setRagResult(null)
+    setRagLoadingMessage(pickRandomLoadingMessage())
     setRagStatus('Đang tra cứu tài liệu...')
     try {
       const data = await queryRagDocument(question)
@@ -137,9 +172,18 @@ function ToolWorkspace({ type }) {
       setRagResult({ answer: error.message || 'Tra cứu thất bại', sources: [] })
       setRagStatus('Tra cứu thất bại')
     } finally {
+      setRagAnswerLoading(false)
       setRagBusy(false)
     }
   }
+
+  useEffect(() => {
+    if (!isRag || !ragAnswerLoading) return undefined
+    const timer = window.setInterval(() => {
+      setRagLoadingMessage(currentMessage => pickRandomLoadingMessage(currentMessage))
+    }, 1200)
+    return () => window.clearInterval(timer)
+  }, [isRag, ragAnswerLoading])
 
   return (
     <div className="chat-area">
@@ -227,7 +271,12 @@ function ToolWorkspace({ type }) {
         </div>
         <div className="tool-panel tool-result">
           <div className="tool-kicker">Kết quả</div>
-          {isRag && ragResult ? (
+          {isRag && ragAnswerLoading ? (
+            <div className="rag-answer-loading" role="status" aria-live="polite">
+              <span className="rag-answer-spinner" aria-hidden="true" />
+              <span>{ragLoadingMessage}</span>
+            </div>
+          ) : isRag && ragResult ? (
             <div className="rag-result">
               <div className="rag-answer">{ragResult.answer}</div>
               <div className="rag-sources">
@@ -250,8 +299,8 @@ function ToolWorkspace({ type }) {
             </div>
           )}
           <div className="result-grid">
-            <div><span>Nguồn</span><strong>{isRag ? (ragResult?.sources?.length || 0) : 0}</strong></div>
-            <div><span>Chunks</span><strong>{isRag ? (ragUpload?.chunk_count || '--') : '--'}</strong></div>
+            <div><span>Nguồn phù hợp</span><strong>{isRag ? (ragResult?.source_count ?? ragResult?.sources?.length ?? 0) : 0}</strong></div>
+            <div><span>Tổng chunks</span><strong>{isRag ? (ragResult?.total_chunks || ragUpload?.chunk_count || '--') : '--'}</strong></div>
             <div><span>Trạng thái</span><strong>{isRag ? ragStatus : 'Chưa chạy'}</strong></div>
           </div>
         </div>
@@ -462,4 +511,3 @@ function DebateChat({ session, onSessionUpdate, onSessionReview }) {
     </div>
   )
 }
-

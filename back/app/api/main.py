@@ -68,6 +68,8 @@ class RagUploadResponse(BaseModel):
 class RagQueryResponse(BaseModel):
     answer: str
     sources: list[dict]
+    source_count: int = 0
+    total_chunks: int = 0
 
 
 class BaseInps(TypedDict, total=False):

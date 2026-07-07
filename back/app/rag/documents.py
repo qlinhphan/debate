@@ -12,6 +12,7 @@ from app.rag.retrieval import retrievals
 
 
 USER_ID = "user_123"
+RAG_TOP_K = 27
 RAG_DIR = Path(__file__).resolve().parent
 BACK_DIR = RAG_DIR.parents[1]
 UPLOAD_DIR = BACK_DIR / "data" / "rag_uploads"
@@ -90,11 +91,14 @@ def query_document(question: str) -> dict:
     if not clean_question:
         raise ValueError("Question is required")
 
-    sources = retrievals(clean_question, user_id=USER_ID, k=5, min_score=0.35, with_scores=True)
+    total_chunks = _collection().count_documents({"user_id": USER_ID})
+    sources = retrievals(clean_question, user_id=USER_ID, k=RAG_TOP_K, min_score=0.5, with_scores=True)
     if not sources:
         return {
-            "answer": "Chưa có tài liệu phù hợp để trả lời. Hãy upload tài liệu trước hoặc hỏi sát nội dung tài liệu hơn.",
+            "answer": "Câu hỏi này không có trong tài liệu",
             "sources": [],
+            "source_count": 0,
+            "total_chunks": total_chunks,
         }
 
     answer = agent_retrieval(clean_question)
@@ -108,4 +112,6 @@ def query_document(question: str) -> dict:
     return {
         "answer": answer,
         "sources": sources,
+        "source_count": len(sources),
+        "total_chunks": total_chunks,
     }
