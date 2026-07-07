@@ -9,7 +9,7 @@ from pathlib import Path
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 def _split_documents(data):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=80)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=120)
     docs = text_splitter.split_documents(data)
     return [doc.page_content for doc in docs]
 
@@ -43,6 +43,5 @@ def chunks_from_file(path):
 if __name__ == "__main__":
     data = chunks_data_txt("conan.txt")
     print(data)
-
 
 

@@ -53,7 +53,7 @@ function ToolWorkspace({ type }) {
   const [promptSaving, setPromptSaving] = useState(false)
   const [showPromptEditor, setShowPromptEditor] = useState(false)
   const [ragQuestion, setRagQuestion] = useState('')
-  const [ragStatus, setRagStatus] = useState('ChÆ°a upload tÃ i liá»‡u')
+  const [ragStatus, setRagStatus] = useState('Chưa upload tài liệu')
   const [ragUpload, setRagUpload] = useState(null)
   const [ragResult, setRagResult] = useState(null)
   const [ragBusy, setRagBusy] = useState(false)
@@ -67,17 +67,17 @@ function ToolWorkspace({ type }) {
     }
 
     let cancelled = false
-    setPromptStatus('Äang táº£i prompt...')
+    setPromptStatus('Đang tải prompt...')
     fetchMultiDocPrompt()
       .then(data => {
         if (cancelled) return
         setMultiDocPrompt(data.prompt || '')
-        setPromptStatus(data.file_name ? `Äang dÃ¹ng ${data.file_name}` : 'ÄÃ£ táº£i prompt')
+        setPromptStatus(data.file_name ? `Đang dùng ${data.file_name}` : 'Đã tải prompt')
       })
       .catch(error => {
         if (cancelled) return
         console.error('Fetch prompt failed', error)
-        setPromptStatus('ChÆ°a táº£i Ä‘Æ°á»£c prompt')
+        setPromptStatus('Chưa tải được prompt')
       })
 
     return () => {
@@ -88,14 +88,14 @@ function ToolWorkspace({ type }) {
   async function handleSavePrompt() {
     if (isRag || promptSaving) return
     setPromptSaving(true)
-    setPromptStatus('Äang lÆ°u prompt...')
+    setPromptStatus('Đang lưu prompt...')
     try {
       const data = await saveMultiDocPrompt(multiDocPrompt)
       setMultiDocPrompt(data.prompt || '')
-      setPromptStatus(`ÄÃ£ lÆ°u vÃ o ${data.file_name || 'prompt_nhieutailieu.json'}`)
+      setPromptStatus(`Đã lưu vào ${data.file_name || 'prompt_nhieutailieu.json'}`)
     } catch (error) {
       console.error('Save prompt failed', error)
-      setPromptStatus('LÆ°u prompt tháº¥t báº¡i')
+      setPromptStatus('Lưu prompt thất bại')
     } finally {
       setPromptSaving(false)
     }
@@ -107,15 +107,15 @@ function ToolWorkspace({ type }) {
     setRagBusy(true)
     setRagLearning(true)
     setRagResult(null)
-    setRagStatus('Äang upload vÃ  xá»­ lÃ½ tÃ i liá»‡u...')
+    setRagStatus('Đang upload và xử lý tài liệu...')
     try {
       const data = await uploadRagDocument(file)
       setRagUpload(data)
-      setRagStatus(`ÄÃ£ xá»­ lÃ½ ${data.file_name} (${data.chunk_count} chunks)`)
+      setRagStatus(`Đã xử lý ${data.file_name} (${data.chunk_count} chunks)`)
     } catch (error) {
       console.error('RAG upload failed', error)
       setRagUpload(null)
-      setRagStatus(error.message || 'Upload tháº¥t báº¡i')
+      setRagStatus(error.message || 'Upload thất bại')
     } finally {
       setRagLearning(false)
       setRagBusy(false)
@@ -127,15 +127,15 @@ function ToolWorkspace({ type }) {
     const question = ragQuestion.trim()
     if (!question || ragBusy) return
     setRagBusy(true)
-    setRagStatus('Äang tra cá»©u tÃ i liá»‡u...')
+    setRagStatus('Đang tra cứu tài liệu...')
     try {
       const data = await queryRagDocument(question)
       setRagResult(data)
-      setRagStatus('ÄÃ£ cÃ³ cÃ¢u tráº£ lá»i')
+      setRagStatus('Đã có câu trả lời')
     } catch (error) {
       console.error('RAG query failed', error)
-      setRagResult({ answer: error.message || 'Tra cá»©u tháº¥t báº¡i', sources: [] })
-      setRagStatus('Tra cá»©u tháº¥t báº¡i')
+      setRagResult({ answer: error.message || 'Tra cứu thất bại', sources: [] })
+      setRagStatus('Tra cứu thất bại')
     } finally {
       setRagBusy(false)
     }
@@ -152,11 +152,11 @@ function ToolWorkspace({ type }) {
       <div className="tool-workspace">
         <div className="tool-panel tool-primary">
           <div className="tool-kicker">{isRag ? 'RAG Workspace' : 'Document QA'}</div>
-          <h1>{isRag ? 'Há»i Ä‘Ã¡p tÃ i liá»‡u' : 'Kiá»ƒm tra lá»—i tÃ i liá»‡u'}</h1>
+          <h1>{isRag ? 'Hỏi đáp tài liệu' : 'Kiểm tra lỗi tài liệu'}</h1>
           <div className="tool-upload">
             <div className="upload-icon">{isRag ? 'RAG' : 'DOC'}</div>
             <div>
-              <div className="upload-title">Tháº£ tÃ i liá»‡u vÃ o Ä‘Ã¢y</div>
+              <div className="upload-title">Thả tài liệu vào đây</div>
               <div className="upload-subtitle">{isRag && ragUpload ? ragUpload.file_name : 'File: PDF, DOCX-WORD, TXT'}</div>
             </div>
             <button
@@ -181,7 +181,7 @@ function ToolWorkspace({ type }) {
             className="tool-textarea"
             value={isRag ? ragQuestion : undefined}
             onChange={isRag ? event => setRagQuestion(event.target.value) : undefined}
-            placeholder={isRag ? 'Nháº­p cÃ¢u há»i vá» tÃ i liá»‡u...' : 'Nháº­p tiÃªu chÃ­ hoáº·c loáº¡i lá»—i cáº§n kiá»ƒm tra...'}
+            placeholder={isRag ? 'Nhập câu hỏi về tài liệu...' : 'Nhập tiêu chí hoặc loại lỗi cần kiểm tra...'}
           />
           <div className="tool-action-row">
             <button
@@ -198,7 +198,7 @@ function ToolWorkspace({ type }) {
                 className={`prompt-toggle ${showPromptEditor ? 'active' : ''}`}
                 onClick={() => setShowPromptEditor(prev => !prev)}
               >
-                Prompt nhiá»u tÃ i liá»‡u
+                Prompt nhiều tài liệu
               </button>
             )}
           </div>
@@ -206,7 +206,7 @@ function ToolWorkspace({ type }) {
             <div className="prompt-editor">
               <div className="prompt-editor-header">
                 <div>
-                  <div className="prompt-editor-title">Prompt nhiá»u tÃ i liá»‡u</div>
+                  <div className="prompt-editor-title">Prompt nhiều tài liệu</div>
                   <div className="prompt-file-name">prompt_nhieutailieu.json</div>
                 </div>
                 <span className="prompt-status">{promptStatus}</span>
@@ -215,18 +215,18 @@ function ToolWorkspace({ type }) {
                 className="prompt-textarea"
                 value={multiDocPrompt}
                 onChange={event => setMultiDocPrompt(event.target.value)}
-                placeholder="Nháº­p prompt kiá»ƒm tra nhiá»u tÃ i liá»‡u..."
+                placeholder="Nhập prompt kiểm tra nhiều tài liệu..."
               />
               <div className="prompt-actions">
                 <button type="button" className="prompt-save" onClick={handleSavePrompt} disabled={promptSaving}>
-                  {promptSaving ? 'Äang lÆ°u...' : 'LÆ°u prompt'}
+                  {promptSaving ? 'Đang lưu...' : 'Lưu prompt'}
                 </button>
               </div>
             </div>
           )}
         </div>
         <div className="tool-panel tool-result">
-          <div className="tool-kicker">Káº¿t quáº£</div>
+          <div className="tool-kicker">Kết quả</div>
           {isRag && ragResult ? (
             <div className="rag-result">
               <div className="rag-answer">{ragResult.answer}</div>

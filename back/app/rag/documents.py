@@ -7,7 +7,7 @@ from app.rag.agent_rag import agent_retrieval
 from app.rag.build_faiss import build_faissed
 from app.rag.chunks import SUPPORTED_EXTENSIONS, chunks_from_file
 from app.rag.connect_mg import connect_mgs
-from app.rag.embedder import embedders
+from app.rag.embedder import embed_documents
 from app.rag.retrieval import retrievals
 
 
@@ -50,25 +50,32 @@ def reset_user_documents() -> None:
 
 
 def ingest_document(file_path: Path, original_filename: str) -> dict:
+    print(f"[rag/upload] chunking {original_filename}")
     chunks = [chunk for chunk in chunks_from_file(str(file_path)) if chunk.strip()]
     if not chunks:
         raise ValueError("Document has no readable content")
 
+    print(f"[rag/upload] embedding {len(chunks)} chunks")
+    vectors = embed_documents(chunks)
     documents = []
-    for index, chunk in enumerate(chunks):
+    for index, (chunk, vector) in enumerate(zip(chunks, vectors)):
         documents.append(
             {
                 "user_id": USER_ID,
                 "source": original_filename,
                 "chunk_index": index,
                 "data": chunk,
-                "vector": embedders(chunk),
+                "vector": vector,
             }
         )
 
+    print(f"[rag/upload] resetting old documents for {USER_ID}")
     reset_user_documents()
+    print(f"[rag/upload] inserting {len(documents)} chunks into mongodb")
     _collection().insert_many(documents)
+    print(f"[rag/upload] building faiss index for {USER_ID}")
     build_faissed(USER_ID)
+    print(f"[rag/upload] done {original_filename}")
 
     return {
         "user_id": USER_ID,

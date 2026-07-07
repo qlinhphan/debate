@@ -4,8 +4,10 @@ load_dotenv()
 import os
 
 def connect_mgs(address):
-    myclient = pymongo.MongoClient(address)
-    mydb = myclient["db"]
+    if not address:
+        raise ValueError("MONGO_URI is not configured")
+    myclient = pymongo.MongoClient(address, serverSelectionTimeoutMS=5000)
+    mydb = myclient.get_default_database(default="communicate")
     mycol = mydb["rag"]
     return mycol
 
