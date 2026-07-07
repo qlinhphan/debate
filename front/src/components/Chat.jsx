@@ -299,9 +299,9 @@ function ToolWorkspace({ type }) {
             </div>
           )}
           <div className="result-grid">
-            <div><span>Nguồn phù hợp</span><strong>{isRag ? (ragResult?.source_count ?? ragResult?.sources?.length ?? 0) : 0}</strong></div>
+            {/* <div><span>Nguồn phù hợp</span><strong>{isRag ? (ragResult?.source_count ?? ragResult?.sources?.length ?? 0) : 0}</strong></div>
             <div><span>Tổng chunks</span><strong>{isRag ? (ragResult?.total_chunks || ragUpload?.chunk_count || '--') : '--'}</strong></div>
-            <div><span>Trạng thái</span><strong>{isRag ? ragStatus : 'Chưa chạy'}</strong></div>
+            <div><span>Trạng thái</span><strong>{isRag ? ragStatus : 'Chưa chạy'}</strong></div> */}
           </div>
         </div>
       </div>
