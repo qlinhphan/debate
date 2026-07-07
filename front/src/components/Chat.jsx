@@ -23,14 +23,14 @@ function Message({ m }) {
 function ReviewModal({ review, onClose }) {
   if (!review) return null
   return (
-    <div className="review-overlay" role="dialog" aria-modal="true" aria-label="Káº¿t luáº­n tháº£o luáº­n">
+    <div className="review-overlay" role="dialog" aria-modal="true" aria-label="Kết luận thảo luận">
       <div className="review-modal">
         <div className="review-header">
           <div>
-            <div className="review-eyebrow">Káº¿t luáº­n</div>
-            <h2 className="review-title">Sau má»™t há»“i bÃ n báº¡c nhanh chÃ³ng thÃ¬</h2>
+            <div className="review-eyebrow">Kết luận</div>
+            <h2 className="review-title">Sau một hồi bàn bạc nhanh chóng thì</h2>
           </div>
-          <button className="review-close" onClick={onClose} aria-label="ÄÃ³ng káº¿t luáº­n">Ã—</button>
+          <button className="review-close" onClick={onClose} aria-label="Đóng kết luận">×</button>
         </div>
         <div className="review-body">{review}</div>
       </div>
@@ -40,7 +40,7 @@ function ReviewModal({ review, onClose }) {
 
 function formatTopicTitle(topic) {
   const words = topic.split(/\s+/).filter(Boolean)
-  if (!words.length) return 'Chá»§ Ä‘á»'
+  if (!words.length) return 'Chủ đề'
   const firstFive = words.slice(0, 5)
   return firstFive.length < words.length ? `${firstFive.join(' ')} ...` : firstFive.join(' ')
 }
@@ -360,13 +360,13 @@ function DebateChat({ session, onSessionUpdate, onSessionReview }) {
 
     try {
       const result = await fetchChatReview({ topic, sessionId })
-      const nextReview = result.review || 'ChÆ°a cÃ³ káº¿t luáº­n.'
+      const nextReview = result.review || 'Chưa có kết luận.'
       setReview(nextReview)
       setShowReview(true)
       onSessionReview && onSessionReview(sessionId, nextReview)
     } catch (error) {
       console.error('Chat review failed', error)
-      const fallbackReview = 'ChÆ°a láº¥y Ä‘Æ°á»£c káº¿t luáº­n. Vui lÃ²ng thá»­ láº¡i.'
+      const fallbackReview = 'Chưa lấy được kết luận. Vui lòng thử lại.'
       setReview(fallbackReview)
       setShowReview(true)
     } finally {
@@ -475,22 +475,22 @@ function DebateChat({ session, onSessionUpdate, onSessionReview }) {
       <div className="chat-surface">
         <div className="chat-header">
           <span className="chat-title">Trò chuyện</span>
-          <span className="topic-title">{session ? `TÃªn chá»§ Ä‘á»: ${formatTopicTitle(topic)}` : ''}</span>
+          <span className="topic-title">{session ? `Tên chủ đề: ${formatTopicTitle(topic)}` : ''}</span>
           <button className="stop-btn" onClick={handleStop} disabled={!running}>
-            Dá»«ng tháº£o luáº­n
+            Dừng thảo luận
           </button>
         </div>
         {reviewing && (
-          <div className="final-report-loader" aria-label="Äang xuáº¥t bÃ¡o cÃ¡o cuá»‘i">
-            <div className="final-report-copy">Äang xuáº¥t bÃ¡o cÃ¡o cuá»‘i...</div>
+          <div className="final-report-loader" aria-label="Đang xuất báo cáo cuối">
+            <div className="final-report-copy">Đang xuất báo cáo cuối...</div>
             <div className="final-report-track">
               <div className="final-report-bar" />
             </div>
           </div>
         )}
         {running && (
-          <div className="progress-wrap" aria-label="Tiáº¿n trÃ¬nh tháº£o luáº­n">
-            <div className="progress-label">Äang tháº£o luáº­n...</div>
+          <div className="progress-wrap" aria-label="Tiến trình thảo luận">
+            <div className="progress-label">Đang thảo luận...</div>
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
@@ -503,7 +503,7 @@ function DebateChat({ session, onSessionUpdate, onSessionReview }) {
         </div>
         {review && !showReview && (
           <button className="review-reopen" onClick={() => setShowReview(true)}>
-            Xem káº¿t luáº­n
+            Xem kết luận
           </button>
         )}
       </div>

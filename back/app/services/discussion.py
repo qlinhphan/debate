@@ -1,26 +1,14 @@
 from typing import TypedDict
 
-from app.agents.check_type import agent_check_types
+from app.agents.check_type import QUESTION_TYPES, agent_check_types
 from app.agents.one import agent_ones
 from app.agents.review import agent_reviews
 from app.agents.two import agent_twos
 
 
-TYPE_SENTENCE = [
-    "Cái gì",
-    "Ai",
-    "Ở đâu",
-    "Khi nào",
-    "Tại sao",
-    "Như thế nào",
-    "Có/không",
-    "So sánh",
-    "Liệt kê",
-    "Lệnh/yêu cầu thực hiện",
-    "Tính toán",
-    "Sáng tạo",
-    "Ý kiến/gợi ý",
-]
+TYPE_SENTENCE = QUESTION_TYPES
+
+
 class BaseInps(TypedDict, total=False):
     check: str
     inp: str
@@ -37,10 +25,7 @@ class BaseInps(TypedDict, total=False):
 
 def _detect_question_type(topic: str) -> str:
     result = agent_check_types(topic)
-    for sentence_type in TYPE_SENTENCE:
-        if sentence_type in result:
-            return sentence_type
-    return "Ý kiến/gợi ý"
+    return result if result in TYPE_SENTENCE else "Ý kiến/gợi ý"
 
 
 def _initial_state(topic: str) -> BaseInps:

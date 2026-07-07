@@ -1,73 +1,96 @@
-from langchain_openai import ChatOpenAI
-from dotenv import load_dotenv
-load_dotenv()
 import os
-# tao ra 1 con agent kiem tra tu vung
-from langchain_classic.tools import tool
-from langchain_classic.agents import AgentExecutor, create_tool_calling_agent
-from pydantic import Field, BaseModel
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import AIMessage, HumanMessage
-from pprint import pprint
+import re
 
-# 1. What (Cái gì)
-# 2. Who (Ai)
-# 3. Where (Ở đâu)
-# 4. When (Khi nào)
-# 5. Why (Tại sao)
-# 6. How (Như thế nào)
-# 7. Yes/No (Có/Không)
-# 8. Comparison (So sánh)
-# 9. Choice (Lựa chọn)
-# 10. List (Liệt kê)
-# 11. Command (Lệnh/Yêu cầu thực hiện)
-# 12. Calculation (Tính toán)
-# 13. Creative (Sáng tạo)
-# 14. Opinion/Recommendation (Ý kiến/Gợi ý)
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
 
-llm = ChatOpenAI(model= os.getenv("MODEL_CHAT"), api_key= os.getenv("OPENAI_API_KEY"), base_url=os.getenv("BASE_URL"))
+load_dotenv()
 
-type_sentence = ["Cái gì", "Ai", "Ở đâu", "Khi nào", "Tại sao", "Như thế nào", "Có/không", "So sánh", "Liệt kê", "Lệnh/yêu cầu thực hiện", "Tính toán", "Sáng tạo", "Ý kiến/gợi ý"]
 
-class BaseInp(BaseModel):
-    exp: str = Field(description="Câu đầu vào của người dùng")
-@tool(args_schema=BaseInp)
-def toolCheckType(exp: str):
-    """Tool dùng để kiểm tra loại câu hỏi/câu nói của người dùng"""
-    print("<<<<< TOOL CHECKTYPE >>>>>")
+QUESTION_TYPES = [
+    "Cái gì",
+    "Ai",
+    "Ở đâu",
+    "Khi nào",
+    "Tại sao",
+    "Như thế nào",
+    "Có/không",
+    "So sánh",
+    "Liệt kê",
+    "Lệnh/yêu cầu thực hiện",
+    "Tính toán",
+    "Sáng tạo",
+    "Ý kiến/gợi ý",
+]
+
+DEFAULT_TYPE = "Ý kiến/gợi ý"
+
+llm = ChatOpenAI(
+    model=os.getenv("MODEL_CHAT"),
+    api_key=os.getenv("OPENAI_API_KEY"),
+    base_url=os.getenv("BASE_URL"),
+)
+
+
+def _normalize(text: str) -> str:
+    return re.sub(r"\s+", " ", (text or "").strip().lower())
+
+
+def _detect_by_rules(question: str) -> str | None:
+    text = _normalize(question)
+    if not text:
+        return DEFAULT_TYPE
+
+    if re.search(r"\b(ai|người nào|nhân vật nào|tác giả nào|công ty nào|tổ chức nào)\b", text):
+        return "Ai"
+    if re.search(r"\b(ở đâu|nơi nào|chỗ nào|địa điểm nào|tại đâu)\b", text):
+        return "Ở đâu"
+    if re.search(r"\b(khi nào|bao giờ|lúc nào|thời điểm nào|năm nào|ngày nào|tháng nào)\b", text):
+        return "Khi nào"
+    if re.search(r"\b(tại sao|vì sao|do đâu|nguyên nhân|lý do)\b", text):
+        return "Tại sao"
+    if re.search(r"\b(như thế nào|thế nào|bằng cách nào|làm sao|ra sao|cách nào)\b", text):
+        return "Như thế nào"
+    if re.search(r"\b(có phải|có nên|đúng không|không\?|chưa\?|phải không|hay không)\b", text):
+        return "Có/không"
+    if re.search(r"\b(so sánh|khác nhau|giống nhau|hơn|kém|tốt hơn|xấu hơn)\b", text):
+        return "So sánh"
+    if re.search(r"\b(liệt kê|danh sách|những gì|các bước|các loại|bao nhiêu)\b", text):
+        return "Liệt kê"
+    if re.search(r"\b(tính|tính toán|bao nhiêu tiền|phần trăm|tổng|hiệu|tích|thương)\b", text):
+        return "Tính toán"
+    if re.search(r"\b(viết|tạo|sáng tác|soạn|lập kế hoạch|hãy|giúp tôi|làm cho tôi)\b", text):
+        return "Lệnh/yêu cầu thực hiện"
+    if re.search(r"\b(ý kiến|gợi ý|nên|đề xuất|khuyên|đánh giá|nhận xét)\b", text):
+        return "Ý kiến/gợi ý"
+    if re.search(r"\b(cái gì|là gì|gì|định nghĩa|khái niệm)\b", text):
+        return "Cái gì"
+    return None
+
+
+def _detect_by_llm(question: str) -> str:
+    labels = ", ".join(QUESTION_TYPES)
     messages = [
         (
             "system",
-            f"""Bạn là một trợ lý AI, chuyên phân tích loại câu hỏi/câu nói của người dùng
-            Nhiệm vụ:
-            Trả ra loại câu hỏi/câu nói mà người dùng đưa vào
-            Quy tắc:
-            Phải đọc kĩ câu hỏi và trả ra một trong các giá trị của {type_sentence}
-            """,
+            (
+                "Bạn là bộ phân loại loại câu hỏi tiếng Việt. "
+                "Chỉ trả về đúng một nhãn trong danh sách sau, không giải thích: "
+                f"{labels}."
+            ),
         ),
-        ("human", exp),
+        ("human", question),
     ]
-    rs = llm.invoke(messages)
-    return {
-        "result": rs.content
-    }
+    try:
+        result = llm.invoke(messages).content.strip()
+    except Exception:
+        return DEFAULT_TYPE
 
-prompt = ChatPromptTemplate.from_messages([
-    ("system", """
-    Bạn là trợ lý AI thông minh chuyên trích xuất, phân tích loại câu hỏi/câu nói của người dùng
-    Nhiệm vụ:
-     trích xuất loại câu hỏi câu nói
-    Quy tắc
-     Phải sử dụng Tool
-     Nếu tool không có đáp án thì nói "Tôi không biết"
-"""),
-    ("user", "{input}"),
-    ("placeholder", "{agent_scratchpad}")
-])
+    for question_type in QUESTION_TYPES:
+        if question_type.lower() in result.lower():
+            return question_type
+    return DEFAULT_TYPE
+
 
 def agent_check_types(q):
-    base = create_tool_calling_agent(llm, [toolCheckType], prompt)
-    agents = AgentExecutor(agent=base, tools=[toolCheckType])
-
-    rs = agents.invoke({"input": q})
-    return rs['output']
+    return _detect_by_rules(q) or _detect_by_llm(q)
