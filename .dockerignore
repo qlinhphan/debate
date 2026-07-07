@@ -5,3 +5,4 @@ front/dist
 back/__pycache__
 back/data
 *.pyc
+*.index

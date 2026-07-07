@@ -41,5 +41,6 @@ base = create_tool_calling_agent(llm, [toolCommunicateOne], prompt)
 agent = AgentExecutor(agent=base, tools=[toolCommunicateOne])
 
 
-rs = agent.invoke({"input": "Hãy thảo luận về chủ đề biến đổi khí hậu", "history": []})
-print(rs['output'])
+if __name__ == "__main__":
+    rs = agent.invoke({"input": "Hãy thảo luận về chủ đề biến đổi khí hậu", "history": []})
+    print(rs['output'])

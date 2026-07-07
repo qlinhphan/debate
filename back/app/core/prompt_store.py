@@ -5,7 +5,7 @@ from threading import Lock
 from typing import Any
 
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 PROMPT_FILE = DATA_DIR / "prompt_nhieutailieu.json"
 PROMPT_NAME = "prompt_nhieutailieu"
 

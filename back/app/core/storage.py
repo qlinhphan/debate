@@ -6,7 +6,7 @@ from threading import Lock
 from typing import Any
 
 
-DATA_DIR = Path(__file__).resolve().parent / "data"
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 DATA_FILE = DATA_DIR / "conversations.json"
 _lock = Lock()
 _store_cache: dict[str, dict[str, Any]] | None = None

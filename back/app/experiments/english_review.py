@@ -41,5 +41,6 @@ prompt = ChatPromptTemplate([
 base = create_tool_calling_agent(llm, [toolReview], prompt)
 agent = AgentExecutor(agent=base, tools=[toolReview])
 
-rs = agent.invoke({"input": "I am Link"})
-print(rs['output'])
+if __name__ == "__main__":
+    rs = agent.invoke({"input": "I am Link"})
+    print(rs['output'])
