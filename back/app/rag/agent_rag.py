@@ -9,7 +9,7 @@ from pydantic import Field, BaseModel
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage
 from pprint import pprint
-from app.rag.retrieval import retrievals
+from retrieval import retrievals
 
 
 class Baseinps(BaseModel):
@@ -47,3 +47,6 @@ def agent_retrieval(q):
 
     rs = agent.invoke({"input": q})
     return rs['output']
+
+if __name__ == "__main__":
+    rs = agent_retrieval("tóm tắt tài liệu")
