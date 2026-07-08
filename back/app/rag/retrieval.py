@@ -21,7 +21,7 @@ DEFAULT_USER_ID = "user_123"
 DEFAULT_TOP_K = 27
 
 
-def retrievals(q, user_id=DEFAULT_USER_ID, k=DEFAULT_TOP_K, min_score=0.3, with_scores=False):
+def retrievals(q, user_id=DEFAULT_USER_ID, k=DEFAULT_TOP_K, min_score=0.2, with_scores=False):
     mycol = connect_mgs(os.getenv("MONGO_URI"))
     data_indb = list(mycol.find({"user_id": user_id}).sort("chunk_index", 1))
     index_path = RAG_DIR / f"{user_id}.index"
