@@ -3,7 +3,7 @@ load_dotenv()
 import os
 from pathlib import Path
 import sys
-from agent_rag import agent_retrieval
+from app.rag.agent_rag import agent_retrieval
 
 
 if __package__ in (None, ""):

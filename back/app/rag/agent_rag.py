@@ -9,7 +9,7 @@ from pydantic import Field, BaseModel
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage
 from pprint import pprint
-from retrieval import retrievals
+from app.rag.retrieval import retrievals
 
 
 class Baseinps(BaseModel):
